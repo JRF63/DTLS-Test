@@ -6,11 +6,12 @@ int main(int argc, char* argv[])
     if (argc < 2) {
         PRINT_AND_EXIT("Usage: client <words to send>\n");
     }
-    BIO* bio = init_bio(0);
 
+    BIO* bio = init_bio(0);
     SSL_CTX* ctx = init_context("client", client_verify_cb);
 
     SSL* ssl = SSL_new(ctx);
+    // ssl takes ownership of bio
     SSL_set_bio(ssl, bio, bio);
     
     if (SSL_connect(ssl) != 1) {
@@ -21,7 +22,6 @@ int main(int argc, char* argv[])
         // write including the null byte
         SSL_write(ssl, argv[i], strlen(argv[i]) + 1);
     }
-
     SSL_shutdown(ssl);
     
     SSL_free(ssl);

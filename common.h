@@ -33,11 +33,13 @@ BIO* init_bio(int is_server)
 
         if (is_server) {
             if (BIO_bind(sock, BIO_ADDRINFO_address(p), BIO_SOCK_REUSEADDR) == 0) {
+                BIO_closesocket(sock);
                 continue;
             }
             
         } else {
             if (BIO_connect(sock, BIO_ADDRINFO_address(p), 0) == 0) {
+                BIO_closesocket(sock);
                 continue;
             }
         }
