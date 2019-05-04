@@ -44,6 +44,7 @@ BIO* init_bio(int is_server)
             }
         }
 
+        // automatically free socket with BIO_CLOSE
         bio = BIO_new_dgram(sock, BIO_CLOSE);
         if (!is_server) {
             BIO_ctrl_set_connected(bio, BIO_ADDRINFO_address(p));
@@ -60,77 +61,37 @@ BIO* init_bio(int is_server)
     return bio;
 }
 
-SSL_CTX* init_context(const char* keyname, SSL_verify_cb verify_cb)
+SSL_CTX* init_context(int is_server)
 {
-    int result;
-
     SSL_CTX* ctx = SSL_CTX_new(DTLS_method());
-    if (ctx == NULL) {
-        PRINT_AND_EXIT("Error: cannot create SSL_CTX.\n");
-    }
 
+    int result;
     result = SSL_CTX_set_cipher_list(ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
     if (result != 1) {
-        PRINT_AND_EXIT("Error: cannot set the cipher list.\n");
+        PRINT_AND_EXIT("cannot set cipher list.\n");
     }
 
-    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_cb);
-
-    char certfile[1024];
-    char keyfile[1024];
-    sprintf(certfile, "./%s-cert.pem", keyname);
-    sprintf(keyfile, "./%s-key.pem", keyname);
-
-    result = SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM);
-    if (result != 1) {
-        PRINT_AND_EXIT("Error: cannot load certificate file.\n");
-    }
+    char* keyfile = is_server ? "./keys/server-key.pem" : "./keys/client-key.pem";
+    char* certfile = is_server ? "./certs/server-cert.pem" : "./certs/client-cert.pem";
 
     result = SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM);
     if (result != 1) {
-        PRINT_AND_EXIT("Error: cannot load private key file.\n");
+        PRINT_AND_EXIT("failed to load private key.\n");
+    }
+
+    result = SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM);
+    if (result != 1) {
+        PRINT_AND_EXIT("failed to load certificate.\n");
     }
 
     return ctx;
-}
-
-int server_verify_cb(int preverify_ok, X509_STORE_CTX* x509_ctx)
-{
-	FILE* fp = fopen("client-cert.pem", "r");
-	X509* a = PEM_read_X509(fp, NULL, NULL, NULL);
-	fclose(fp);
-
-	X509* b = X509_STORE_CTX_get_current_cert(x509_ctx);
-	if (X509_cmp(a, b) == 0) {
-		preverify_ok = 1;
-	}
-	X509_free(a);
-    // Don't "X509_free(b);", we don't own the pointer
-	printf("Server callback here.\n");
-	return preverify_ok;
-}
-
-int client_verify_cb(int preverify_ok, X509_STORE_CTX* x509_ctx)
-{
-	FILE* fp = fopen("server-cert.pem", "r");
-	X509* a = PEM_read_X509(fp, NULL, NULL, NULL);
-	fclose(fp);
-
-	X509* b = X509_STORE_CTX_get_current_cert(x509_ctx);
-	if (X509_cmp(a, b) == 0) {
-		preverify_ok = 1;
-	}
-	X509_free(a);
-    // Don't "X509_free(b);", we don't own the pointer
-	printf("Client callback here.\n");
-	return preverify_ok;
 }
 
 # define COOKIE_LEN  20
 
 int cookie_gen(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
 {
-    printf("Cookie gen.\n");
+    printf("-> cookie gen\n");
     unsigned int i;
 
     for (i = 0; i < COOKIE_LEN; i++, cookie++)
@@ -143,7 +104,7 @@ int cookie_gen(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
 int cookie_verify(SSL *ssl, const unsigned char *cookie,
                          unsigned int cookie_len)
 {
-    printf("Cookie verify.\n");
+    printf("<- cookie verify\n");
     unsigned int i;
 
     if (cookie_len != COOKIE_LEN)

@@ -8,11 +8,20 @@ int main(int argc, char* argv[])
     }
 
     BIO* bio = init_bio(0);
-    SSL_CTX* ctx = init_context("client", client_verify_cb);
+    SSL_CTX* ctx = init_context(0);
+
+    // set trusted cert
+    SSL_CTX_load_verify_locations(ctx, "./certs/server-cert.pem", NULL);
+    // verify the server
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
 
     SSL* ssl = SSL_new(ctx);
     // ssl takes ownership of bio
     SSL_set_bio(ssl, bio, bio);
+
+    SSL_use_certificate_file(ssl, "./certs/client-cert.pem", SSL_FILETYPE_PEM);
+    
+    SSL_use_PrivateKey_file(ssl, "./keys/client-key.pem", SSL_FILETYPE_PEM);
     
     if (SSL_connect(ssl) != 1) {
         PRINT_AND_EXIT("SSL_connect failed\n")

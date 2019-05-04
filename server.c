@@ -3,7 +3,12 @@
 int main()
 {
     BIO* bio = init_bio(1);
-    SSL_CTX* ctx = init_context("server", server_verify_cb);
+    SSL_CTX* ctx = init_context(1);
+
+    // set trusted cert
+    SSL_CTX_load_verify_locations(ctx, "./certs/server-cert.pem", NULL);
+    // don't need to verify client
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
 
     SSL* ssl = SSL_new(ctx);
     // ssl takes ownership of bio
@@ -13,7 +18,7 @@ int main()
     SSL_CTX_set_cookie_generate_cb(ctx, cookie_gen);
     SSL_CTX_set_cookie_verify_cb(ctx, cookie_verify);
 
-    printf("Waiting for connection\n");
+    printf("waiting for connection...\n");
     
     BIO_ADDR* client_addr = BIO_ADDR_new();
 
@@ -25,9 +30,13 @@ int main()
     BIO_ADDR_free(client_addr);
     BIO_do_connect(bio);
 
-    if (SSL_accept(ssl) <= 0) {
+    int ret = SSL_accept(ssl);
+    if (ret <= 0) {
+        printf("%d\n", SSL_get_error(ssl, ret));
         PRINT_AND_EXIT("SSL_accept failed\n");
     }
+
+    printf("\nclient says:\n");
 
     char buf[1024];
     while (!SSL_get_shutdown(ssl)) {
