@@ -7,8 +7,8 @@ int main()
 
     // set trusted cert
     SSL_CTX_load_verify_locations(ctx, "./certs/server-cert.pem", NULL);
-    // don't need to verify client
-    SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+    // verify the client too
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
 
     SSL* ssl = SSL_new(ctx);
     // ssl takes ownership of bio
