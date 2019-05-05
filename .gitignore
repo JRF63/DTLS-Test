@@ -1,3 +1,9 @@
+.vscode/
 client
 server
-.vscode/
+*.exe
+*.exp
+*.ilk
+*.lib
+*.obj
+*.pdb

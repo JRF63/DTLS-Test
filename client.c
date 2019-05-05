@@ -3,6 +3,11 @@
 
 int main(int argc, char* argv[])
 {
+    #ifdef _WIN32
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+    #endif
+
     if (argc < 2) {
         PRINT_AND_EXIT("Usage: client <words to send>\n");
     }
@@ -31,6 +36,10 @@ int main(int argc, char* argv[])
     
     SSL_free(ssl);
     SSL_CTX_free(ctx);
+
+    #ifdef _WIN32
+    WSACleanup();
+    #endif
 
     return 0;
 }

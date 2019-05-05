@@ -2,6 +2,11 @@
 
 int main()
 {
+    #ifdef _WIN32
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+    #endif
+
     BIO* bio = init_bio(1);
     SSL_CTX* ctx = init_context(1);
 
@@ -49,6 +54,10 @@ int main()
 
     SSL_free(ssl);
     SSL_CTX_free(ctx);
+
+    #ifdef _WIN32
+    WSACleanup();
+    #endif
 
     return 0;
 }
