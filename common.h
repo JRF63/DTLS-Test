@@ -23,7 +23,7 @@ BIO* init_bio(int is_server)
     BIO_ADDRINFO* p;
 
     char* node = is_server ? NULL : "localhost";
-    enum BIO_lookup_type lookup = is_server ? BIO_LOOKUP_CLIENT : BIO_LOOKUP_SERVER;
+    enum BIO_lookup_type lookup = is_server ? BIO_LOOKUP_SERVER : BIO_LOOKUP_CLIENT;
     
     if (BIO_lookup(node, PORT, lookup, AF_INET, SOCK_DGRAM, & info) != 1) {
         PRINT_AND_EXIT("BIO_lookup failed\n");

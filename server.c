@@ -31,9 +31,8 @@ int main()
     
     // SSL_accept requires this bio to be
     // connected to the client's addr
-    BIO_set_conn_address(bio, client_addr);
+    BIO_ctrl_dgram_connect(bio, client_addr);
     BIO_ADDR_free(client_addr);
-    BIO_do_connect(bio);
 
     int ret = SSL_accept(ssl);
     if (ret <= 0) {
