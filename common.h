@@ -9,6 +9,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include <openssl/ssl.h>
 
 #define PRINT_AND_EXIT(err_str) \
@@ -25,7 +26,7 @@ BIO* init_bio(int is_server)
     char* node = is_server ? NULL : "localhost";
     enum BIO_lookup_type lookup = is_server ? BIO_LOOKUP_SERVER : BIO_LOOKUP_CLIENT;
     
-    if (BIO_lookup(node, PORT, lookup, AF_INET, SOCK_DGRAM, & info) != 1) {
+    if (BIO_lookup(node, PORT, lookup, 0, SOCK_DGRAM, & info) != 1) {
         PRINT_AND_EXIT("BIO_lookup failed\n");
     }
     
@@ -91,35 +92,4 @@ SSL_CTX* init_context(int is_server)
     }
 
     return ctx;
-}
-
-# define COOKIE_LEN  20
-
-int cookie_gen(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
-{
-    printf("-> cookie gen\n");
-    unsigned int i;
-
-    for (i = 0; i < COOKIE_LEN; i++, cookie++)
-        *cookie = i;
-    *cookie_len = COOKIE_LEN;
-    
-    return 1;
-}
-
-int cookie_verify(SSL *ssl, const unsigned char *cookie,
-                         unsigned int cookie_len)
-{
-    printf("<- cookie verify\n");
-    unsigned int i;
-
-    if (cookie_len != COOKIE_LEN)
-        return 0;
-
-    for (i = 0; i < COOKIE_LEN; i++, cookie++) {
-        if (*cookie != i)
-            return 0;
-    }
-
-    return 1;
 }

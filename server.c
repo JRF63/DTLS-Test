@@ -1,4 +1,6 @@
 #include "common.h"
+#include "cookie.h"
+#include <openssl/rand.h>
 
 int main()
 {
@@ -16,12 +18,14 @@ int main()
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
 
     SSL* ssl = SSL_new(ctx);
-    // ssl takes ownership of bio
+    // ssl takes ownership of bio, no need to free
     SSL_set_bio(ssl, bio, bio);
 
     SSL_set_options(ssl, SSL_OP_COOKIE_EXCHANGE);
     SSL_CTX_set_cookie_generate_cb(ctx, cookie_gen);
     SSL_CTX_set_cookie_verify_cb(ctx, cookie_verify);
+    cookie_version = 0;
+    RAND_bytes(cookie_secret, COOKIE_SECRET_LEN);
 
     printf("waiting for connection...\n");
     
