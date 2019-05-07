@@ -26,7 +26,7 @@ BIO* init_bio(int is_server)
     char* node = is_server ? NULL : "localhost";
     enum BIO_lookup_type lookup = is_server ? BIO_LOOKUP_SERVER : BIO_LOOKUP_CLIENT;
     
-    if (BIO_lookup(node, PORT, lookup, 0, SOCK_DGRAM, & info) != 1) {
+    if (BIO_lookup(node, PORT, lookup, 0, SOCK_DGRAM, &info) != 1) {
         PRINT_AND_EXIT("BIO_lookup failed\n");
     }
     
@@ -72,22 +72,18 @@ SSL_CTX* init_context(int is_server)
 {
     SSL_CTX* ctx = SSL_CTX_new(DTLS_method());
 
-    int result;
-    result = SSL_CTX_set_cipher_list(ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
-    if (result != 1) {
+    if (SSL_CTX_set_cipher_list(ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH") != 1) {
         PRINT_AND_EXIT("cannot set cipher list.\n");
     }
 
     char* keyfile = is_server ? "./keys/server-key.pem" : "./keys/client-key.pem";
     char* certfile = is_server ? "./certs/server-cert.pem" : "./certs/client-cert.pem";
 
-    result = SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM);
-    if (result != 1) {
+    if (SSL_CTX_use_PrivateKey_file(ctx, keyfile, SSL_FILETYPE_PEM) != 1) {
         PRINT_AND_EXIT("failed to load private key.\n");
     }
 
-    result = SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM);
-    if (result != 1) {
+    if (SSL_CTX_use_certificate_file(ctx, certfile, SSL_FILETYPE_PEM) != 1) {
         PRINT_AND_EXIT("failed to load certificate.\n");
     }
 

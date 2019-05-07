@@ -53,7 +53,6 @@ int main()
             printf("%s\n", buf);
         }
     }
-    SSL_shutdown(ssl);
 
     SSL_free(ssl);
     SSL_CTX_free(ctx);
