@@ -44,13 +44,14 @@ int main()
         PRINT_AND_EXIT("SSL_accept failed\n");
     }
 
-    printf("\nclient says:\n");
+    printf("\n");
 
     char buf[1024];
     while (!SSL_get_shutdown(ssl)) {
         int read = SSL_read(ssl, buf, sizeof(buf));
         if (read > 0) {
-            printf("%s\n", buf);
+            printf("client says: %s\n", buf);
+            SSL_write(ssl, buf, read);
         }
     }
 

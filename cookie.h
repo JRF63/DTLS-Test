@@ -6,7 +6,7 @@
 unsigned char cookie_secret[COOKIE_SECRET_LEN];
 char cookie_version;
 
-#define DEBUG
+// #define DEBUG
 
 // Cookie = HMAC(Secret, Client-IP, Client-Parameters)
 int stateless_hmac(SSL* ssl, unsigned char* cookie, unsigned int* cookie_len)

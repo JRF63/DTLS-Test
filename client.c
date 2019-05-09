@@ -27,9 +27,14 @@ int main(int argc, char* argv[])
         PRINT_AND_EXIT("SSL_connect failed\n")
     }
 
+    char buf[1024];
     for (int i = 1; i < argc; i++) {
         // write including the null byte
         SSL_write(ssl, argv[i], strlen(argv[i]) + 1);
+        int read = SSL_read(ssl, buf, sizeof(buf));
+        if (read > 0) {
+            printf("server says: %s\n", buf);
+        }
     }
     SSL_shutdown(ssl);
     
